@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class InteractionController extends Controller
-{	
+{   
 
-	public function index()
+    public function index()
     {
         $interactions = Interaction::all();
 
@@ -52,28 +52,41 @@ class InteractionController extends Controller
     public function trackEvent($id)
     {
 
-	    $interaction = Interaction::findOrFail($id);
-	    return response()->json(['message' => 'Event tracked successfully', 'interaction' => $interaction]);
+        $interaction = Interaction::findOrFail($id);
+        return response()->json(['message' => 'Event tracked successfully', 'interaction' => $interaction]);
     }
 
     public function getStatistics(Request $request)
-	{
-	    // Validate the request
-	    $request->validate([
-	        'label' => 'required|string',
-	    ]);
+    {
+        // Validate the request
+        $request->validate([
+            'label' => 'required|string',
+        ]);
 
-	    $label = $request->input('label');
+        $label = $request->input('label');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
 
-	     $statistics = Interaction::where('label', $label)
-	        ->groupBy('label', 'type')
-	        ->select([
-	            \DB::raw('COUNT(*) as count'),
-	            'label',
-	            'type',
-	        ])
-	        ->first();
+        $query = Interaction::where('label', $label);
 
-	    return response()->json($statistics);
-	}
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        $statistics = $query
+            ->groupBy('label', 'type')
+            ->select([
+                \DB::raw('COUNT(*) as count'),
+                'label',
+                'type',
+            ])
+            ->first();
+
+
+        return response()->json($statistics);
+    }
 }
