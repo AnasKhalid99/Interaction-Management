@@ -21,7 +21,7 @@ Route::post('login', [UserController::class, 'login']);
 
 
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:api' , 'throttle:30,1')->group(function () {
     Route::resource('interactions', InteractionController::class)->only(['store']);
     Route::put('interactions/{id}', [InteractionController::class, 'update']);
     Route::get('interactions', [InteractionController::class, 'index']);
